@@ -1,0 +1,15 @@
+{# 
+    Silly example that shows how to convert a header file to YAML
+#}
+---
+{% for header in headers %}
+{% for fn in header.functions %}
+{{ fn.name }}:
+  returns: {{ fn.returns }}
+  params:
+  {% for param in fn.parameters %}
+  - { name: {{ param.name }}, type: "{{ param.type }}" }
+  {% endfor %}
+
+{% endfor %}
+{% endfor %}

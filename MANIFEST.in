@@ -1,0 +1,2 @@
+include examples/*.h
+include examples/*.j2
