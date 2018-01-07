@@ -49,6 +49,7 @@ setup(
     packages=[base_package],
     install_requires=[
         'CppHeaderParser',
+        'jinja2',
         'pyyaml',
         'schematics',
     ],
