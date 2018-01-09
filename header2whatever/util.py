@@ -34,7 +34,11 @@ def import_file(filename):
 def read_file(fname):
     # CppHeaderParser doesn't deal well with weirdly formatted files
     with open(fname, 'rb') as fp:
-        return fp.read().decode('utf-8', 'replace').replace('\ufeff', '')
+        contents = fp.read().decode('utf-8', 'replace').replace('\ufeff', '')
+
+    # CppHeaderParser doesn't handle 'enum class' yet
+    contents = contents.replace('enum class', 'enum')
+    return contents
 
 _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG
 
