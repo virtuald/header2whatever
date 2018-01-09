@@ -48,6 +48,7 @@ def process_header(fname, hooks, data):
     for fn in header.functions:
         call_hook(hooks, 'function_hook', fn, data)
 
+    call_hook(hooks, 'header_hook', header, data)
     return header
 
 def process_module(headers, hooks, data):
