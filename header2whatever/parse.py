@@ -1,7 +1,7 @@
 
 import argparse
 import os
-from os.path import basename, dirname, exists, join
+from os.path import basename, dirname, exists, join, relpath
 import tempfile
 
 import CppHeaderParser
@@ -25,13 +25,18 @@ def _process_class(cls, hooks, data):
 
     call_hook(hooks, 'class_hook', cls, data)
 
-def process_header(fname, hooks, data):
+def process_header(fname, hooks, data, root):
     '''Returns a list of lines'''
 
     header = CppHeaderParser.CppHeader(read_file(fname),
                                        argType='string')
 
     header.full_fname = fname
+    if root:
+        header.rel_fname = relpath(fname, root)
+    else:
+        header.rel_fname = fname
+
     header.fname = basename(fname)
 
     classes = []
@@ -51,9 +56,9 @@ def process_header(fname, hooks, data):
     call_hook(hooks, 'header_hook', header, data)
     return header
 
-def process_module(headers, hooks, data):
+def process_module(headers, hooks, data, root=None):
 
-    headers = [process_header(header, hooks, data) for header in headers]
+    headers = [process_header(header, hooks, data, root) for header in headers]
 
     data = {}
     data['headers'] = headers
@@ -97,7 +102,7 @@ def _process_config(cfg):
             gbls['data'] = yaml.safe_load(fp)
 
     # Process the module
-    data = process_module(cfg.headers, hooks, gbls)
+    data = process_module(cfg.headers, hooks, gbls, getattr(cfg, 'root', None))
 
     for tmpl in cfg.templates:
 
@@ -222,6 +227,7 @@ def batch_convert(config_path, outdir, root):
             cfg.headers = [join(root, header) for header in cfg.headers]
 
         cfg.validate()
+        cfg.root = root
         cfgs.append(cfg)
 
     if not exists(outdir):
