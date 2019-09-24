@@ -30,3 +30,7 @@ class Config(Model):
 
     #: Variables to pass to the template
     vars = DictType(StringType, default={})
+
+    #: For macros or other nonsense, these will
+    #: be added to CppHeaderParser's ignore list
+    ignore_symbols = ListType(StringType)

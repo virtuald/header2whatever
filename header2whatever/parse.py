@@ -65,7 +65,17 @@ def process_module(headers, hooks, data):
     return data
 
 def process_config(cfg):
+    old_ignored = CppHeaderParser.ignoreSymbols
+    CppHeaderParser.ignoreSymbols = old_ignored[:]
+    if cfg.ignore_symbols:
+        CppHeaderParser.ignoreSymbols.extend(cfg.ignore_symbols)
 
+    try:
+        return _process_config(cfg)
+    finally:
+        CppHeaderParser.ignoreSymbols = old_ignored
+
+def _process_config(cfg):
     # Setup the default hooks first
     hook_modules = [default_hooks]
     if cfg.hooks:
