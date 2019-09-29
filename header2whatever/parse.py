@@ -10,6 +10,7 @@ import yaml
 
 from . import default_hooks
 from .config import Config, Template
+from .preprocess import preprocess_file
 from .util import import_file, read_file
 
 def call_hook(hooks, hook_name, *args):
@@ -25,13 +26,25 @@ def _process_class(cls, hooks, data):
 
     call_hook(hooks, 'class_hook', cls, data)
 
-def process_header(fname, hooks, data, root):
+def _fix_header(contents):
+    # CppHeaderParser doesn't handle 'enum class' yet
+    contents = contents.replace('enum class', 'enum')
+    return contents
+
+
+def process_header(cfg, fname, hooks, data):
     '''Returns a list of lines'''
 
-    header = CppHeaderParser.CppHeader(read_file(fname),
+    if cfg.preprocess:
+        contents = preprocess_file(fname, cfg.pp_include_paths)
+    else:
+        contents = read_file(fname)
+
+    header = CppHeaderParser.CppHeader(_fix_header(contents),
                                        argType='string')
 
     header.full_fname = fname
+    root = getattr(cfg, 'root', None)
     if root:
         header.rel_fname = relpath(fname, root)
     else:
@@ -56,9 +69,9 @@ def process_header(fname, hooks, data, root):
     call_hook(hooks, 'header_hook', header, data)
     return header
 
-def process_module(headers, hooks, data, root=None):
+def process_module(cfg, hooks, data):
 
-    headers = [process_header(header, hooks, data, root) for header in headers]
+    headers = [process_header(cfg, header, hooks, data) for header in cfg.headers]
 
     data = {}
     data['headers'] = headers
@@ -102,7 +115,7 @@ def _process_config(cfg):
             gbls['data'] = yaml.safe_load(fp)
 
     # Process the module
-    data = process_module(cfg.headers, hooks, gbls, getattr(cfg, 'root', None))
+    data = process_module(cfg, hooks, gbls)
 
     for tmpl in cfg.templates:
 
@@ -225,6 +238,7 @@ def batch_convert(config_path, outdir, root):
         # Headers are different
         if root:
             cfg.headers = [join(root, header) for header in cfg.headers]
+            cfg.pp_include_paths = [join(root, ppath) for ppath in cfg.pp_include_paths]
 
         cfg.validate()
         cfg.root = root

@@ -1,6 +1,6 @@
 
 from schematics.models import Model
-from schematics.types import ModelType, StringType, ListType, DictType
+from schematics.types import ModelType, BooleanType, StringType, ListType, DictType
 
 
 class Template(Model):
@@ -34,3 +34,11 @@ class Config(Model):
     #: For macros or other nonsense, these will
     #: be added to CppHeaderParser's ignore list
     ignore_symbols = ListType(StringType)
+
+    #: Enable preprocessing of the file
+    preprocess = BooleanType()
+
+    #: Include directories (relative to root) to use for preprocessing
+    pp_include_paths = ListType(StringType)
+
+

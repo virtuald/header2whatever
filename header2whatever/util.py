@@ -36,8 +36,6 @@ def read_file(fname):
     with open(fname, 'rb') as fp:
         contents = fp.read().decode('utf-8', 'replace').replace('\ufeff', '')
 
-    # CppHeaderParser doesn't handle 'enum class' yet
-    contents = contents.replace('enum class', 'enum')
     return contents
 
 _mapping_tag = yaml.resolver.BaseResolver.DEFAULT_MAPPING_TAG

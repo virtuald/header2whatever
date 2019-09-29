@@ -52,6 +52,7 @@ setup(
         'jinja2',
         'pyyaml',
         'schematics',
+        'pcpp',
     ],
     license='Apache 2.0',
     classifiers=[
