@@ -4,7 +4,7 @@
     processed.
     
     The hooks can do whatever they want to the objects when they're passed in.
-    The indended use is to parse the available attributes, and create new
+    The intended use is to parse the available attributes, and create new
     attributes based on those.
     
     To use your own hooks, define the functions you need in a python file, and
