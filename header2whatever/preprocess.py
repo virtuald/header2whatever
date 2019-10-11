@@ -34,7 +34,11 @@ def preprocess_file(fname, include_paths=[]):
     # the output of pcpp includes the contents of all the included files,
     # which isn't what a typical user of h2w would want, so we strip out
     # the line directives and any content that isn't in our original file
-    ew = '"' + fname + '"'
+
+    # the first line is always our file, and sometimes pcpp doesn't use the
+    # original filename (BUT it's always consistent)
+    ew = output[0][len("##__H2WLINE 1 "):]
+
     new_output = []
     for line in output:
         if line.startswith("##__H2WLINE"):
