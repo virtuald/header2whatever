@@ -114,6 +114,9 @@ def _process_config(cfg):
         with open(cfg.data) as fp:
             gbls['data'] = yaml.safe_load(fp)
 
+        if gbls['data'] is None:
+            gbls['data'] = {}
+
     # Process the module
     data = process_module(cfg, hooks, gbls)
 
