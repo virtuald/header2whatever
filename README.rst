@@ -10,6 +10,8 @@ files. pybind11gen was created, but then I wanted to generate more things...
 There are still rough edges, and the documentation is mostly nonexistent, but
 pull requests with fixes/improvements are very welcome!
 
+As of 0.3.0, h2w requires Python 3.3+
+
 Install
 -------
 

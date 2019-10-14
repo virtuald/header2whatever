@@ -13,18 +13,24 @@ from .config import Config, Template
 from .preprocess import preprocess_file
 from .util import import_file, read_file
 
-def call_hook(hooks, hook_name, *args):
+class HookError(Exception):
+    pass
+
+def call_hook(name, hooks, hook_name, *args):
     for hook in hooks[hook_name]:
-        hook(*args)
+        try:
+            hook(*args)
+        except Exception as e:
+            raise HookError(hook_name + ": " + name) from e
 
 def _process_method(method, hooks, data):
-    call_hook(hooks, 'method_hook', method, data)
+    call_hook(method["name"], hooks, 'method_hook', method, data)
 
 def _process_class(cls, hooks, data):
     for method in cls['methods']['public']:
         _process_method(method, hooks, data)
 
-    call_hook(hooks, 'class_hook', cls, data)
+    call_hook(cls["name"], hooks, 'class_hook', cls, data)
 
 def _fix_header(contents):
     # CppHeaderParser doesn't handle 'enum class' yet
@@ -60,13 +66,10 @@ def process_header(cfg, fname, hooks, data):
 
     header.classes = classes
 
-    for cls in header.classes:
-        call_hook(hooks, 'class_hook', cls, data)
-
     for fn in header.functions:
-        call_hook(hooks, 'function_hook', fn, data)
+        call_hook(fn["name"], hooks, 'function_hook', fn, data)
 
-    call_hook(hooks, 'header_hook', header, data)
+    call_hook(header.fname, hooks, 'header_hook', header, data)
     return header
 
 def process_module(cfg, hooks, data):
