@@ -85,18 +85,20 @@ def process_module(cfg, hooks, data):
 
     return data
 
-def process_config(cfg):
+def process_config(cfg, data=None):
+    # If data is passed in, this is used for data instead of loading it
+    # from file
     old_ignored = CppHeaderParser.ignoreSymbols
     CppHeaderParser.ignoreSymbols = old_ignored[:]
     if cfg.ignore_symbols:
         CppHeaderParser.ignoreSymbols.extend(cfg.ignore_symbols)
 
     try:
-        return _process_config(cfg)
+        return _process_config(cfg, data)
     finally:
         CppHeaderParser.ignoreSymbols = old_ignored
 
-def _process_config(cfg):
+def _process_config(cfg, data):
     # Setup the default hooks first
     hook_modules = [default_hooks]
     if cfg.hooks:
@@ -113,7 +115,9 @@ def _process_config(cfg):
     gbls['config'] = cfg
     gbls.update(cfg.vars)
 
-    if cfg.data:
+    if data is not None:
+        gbls['data'] = data
+    elif cfg.data:
         with open(cfg.data) as fp:
             gbls['data'] = yaml.safe_load(fp)
 
