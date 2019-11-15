@@ -16,6 +16,9 @@ from .util import import_file, read_file
 class HookError(Exception):
     pass
 
+class SkipGeneration(Exception):
+    pass
+
 def call_hook(name, hooks, hook_name, *args):
     for hook in hooks[hook_name]:
         try:
@@ -108,7 +111,12 @@ def _render_template(tmpl, data, gbls):
     )
 
     jtmpl = env.get_template(basename(tmpl.src), globals=gbls)
-    s = jtmpl.render(**data)
+
+    try:
+        s = jtmpl.render(**data)
+    except SkipGeneration:
+        return
+
     dst = tmpl.dst
     if dst:
         if '{' in dst:
@@ -148,6 +156,12 @@ def _process_config(cfg, data):
 
         if gbls['data'] is None:
             gbls['data'] = {}
+    
+    # Provide an escape mechanism
+    def _skip_generation():
+        raise SkipGeneration()
+
+    gbls['skip_generation'] = _skip_generation
 
     # Process the module
     data = process_module(cfg, hooks, gbls)
