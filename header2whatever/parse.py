@@ -98,6 +98,31 @@ def process_config(cfg, data=None):
     finally:
         CppHeaderParser.ignoreSymbols = old_ignored
 
+def _render_template(tmpl, data, gbls):
+    # Load the template
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(searchpath=dirname(tmpl.src)),
+        undefined=jinja2.StrictUndefined,
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
+    jtmpl = env.get_template(basename(tmpl.src), globals=gbls)
+    s = jtmpl.render(**data)
+    dst = tmpl.dst
+    if dst:
+        if '{' in dst:
+            env = jinja2.Environment(
+                loader=jinja2.FunctionLoader(lambda _: dst),
+                undefined=jinja2.StrictUndefined,
+            )
+            dst = env.get_template('_', globals=gbls).render(**data)
+        
+        with open(dst, 'w') as fp:
+            fp.write(s)
+    else:
+        print(s)
+
 def _process_config(cfg, data):
     # Setup the default hooks first
     hook_modules = [default_hooks]
@@ -128,23 +153,15 @@ def _process_config(cfg, data):
     data = process_module(cfg, hooks, gbls)
 
     for tmpl in cfg.templates:
+        _render_template(tmpl, data, gbls)
+        
+    if cfg.class_templates:
+        for header in data["headers"]:
+            for clsdata in header.classes:
+                data["cls"] = clsdata
+                for tmpl in cfg.class_templates:
+                    _render_template(tmpl, data, gbls)
 
-        # Load the template
-        env = jinja2.Environment(
-            loader=jinja2.FileSystemLoader(searchpath=dirname(tmpl.src)),
-            undefined=jinja2.StrictUndefined,
-            trim_blocks=True,
-            lstrip_blocks=True,
-        )
-
-        jtmpl = env.get_template(basename(tmpl.src), globals=gbls)
-        s = jtmpl.render(**data)
-
-        if tmpl.dst:
-            with open(tmpl.dst, 'w') as fp:
-                fp.write(s)
-        else:
-            print(s)
 
 
 def main():

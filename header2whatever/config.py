@@ -5,10 +5,11 @@ from schematics.types import ModelType, BooleanType, StringType, ListType, DictT
 
 class Template(Model):
 
-    # source jinja2 template name
+    # source Jinja2 template name
     src = StringType(required=True)
 
-    # output filename (relative to outdir)
+    # output filename (relative to outdir). If a { is present, this is 
+    # processed as a Jinja2 template
     dst = StringType(default=None)
 
 
@@ -20,7 +21,11 @@ class Config(Model):
     # Input C/C++ header files to parse
     headers = ListType(StringType, required=True)
 
-    templates = ListType(ModelType(Template), required=True)
+    # Jinja2 templates processed once per config
+    templates = ListType(ModelType(Template), default=[])
+
+    # Jinja2 templates processed for each class
+    class_templates = ListType(ModelType(Template), default=[])
 
     # Input custom hooks
     hooks = StringType()
