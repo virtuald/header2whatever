@@ -199,8 +199,12 @@ def main():
     parser.add_argument('-o', '--output', help='Output results to specified file')
     parser.add_argument('-p', '--param', nargs='+', help="k=v parameter", default=[])
     parser.add_argument('-d', '--data', help='Load YAML data file and make it available under the data key')
+    
+    parser.add_argument('--preprocess', action='store_true', default=False, help="Preprocess file with pcpp")
+    parser.add_argument('--include', '-I', nargs='+', default=[], help="Preprocessor include paths")
 
     parser.add_argument('--hooks', help='Specify custom hooks file to load')
+    
 
     args = parser.parse_args()
 
@@ -215,6 +219,8 @@ def main():
     tmpl.dst = args.output
     cfg.hooks = args.hooks
     cfg.data = args.data
+    cfg.preprocess = args.preprocess
+    cfg.pp_include_paths = args.include
 
     # Special hook
     tmpfile = None
