@@ -201,12 +201,17 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('template', help='Jinja2 template to use for generation. If set to "pprint", then it will output the data structure available')
-    parser.add_argument('headers', nargs='+')
+    parser.add_argument('headers', nargs=argparse.REMAINDER)
     parser.add_argument('-o', '--output', help='Output results to specified file')
     parser.add_argument('-p', '--param', nargs='+', help="k=v parameter", default=[])
     parser.add_argument('-d', '--data', help='Load YAML data file and make it available under the data key')
+    
+    parser.add_argument('--preprocess', action='store_true', default=False, help="Preprocess file with pcpp")
+    parser.add_argument('--pp-retain-all-content', action='store_true', default=False)
+    parser.add_argument('--include', '-I', action='append', default=[], help="Preprocessor include paths")
 
     parser.add_argument('--hooks', help='Specify custom hooks file to load')
+    
 
     args = parser.parse_args()
 
@@ -221,6 +226,9 @@ def main():
     tmpl.dst = args.output
     cfg.hooks = args.hooks
     cfg.data = args.data
+    cfg.preprocess = args.preprocess
+    cfg.pp_include_paths = args.include
+    cfg.pp_retain_all_content = args.pp_retain_all_content
 
     # Special hook
     tmpfile = None
