@@ -234,7 +234,7 @@ def main():
     tmpfile = None
     if args.template == 'pprint':
         tmpfile = tempfile.NamedTemporaryFile()
-        tmpfile.write(b'{% for h in headers %}\n{{ h | pprint }}\n{% endfor %}\n')
+        tmpfile.write(b'{% for h in headers %}\n{{ h.__dict__ | pprint }}\n{% endfor %}\n')
         tmpfile.flush()
         tmpl.src = tmpfile.name
 
