@@ -9,6 +9,19 @@
     
     To use your own hooks, define the functions you need in a python file, and
     pass the file in via the --hooks argument.
+
+    Header2Whatever makes the following changes to the header object created
+    by CppHeaderParser:
+
+    - classes is a list of classes in source order
+    - The following attributes are moved to 'all_XXX', and the
+      existing attribute will only contain the items defined in
+      the header file being currently parsed (and not in includes)
+      - classes
+      - functions
+      - enums
+      - variables
+      - global_enums
 '''
 
 
