@@ -1,51 +1,85 @@
 
+import io
 from os.path import dirname
 import subprocess
 import sys
 
+from pcpp import Preprocessor, OutputDirective, Action
 
-def preprocess_file(fname, include_paths=[]):
-    '''
-        Preprocesses the file via pcpp. Useful for dealing with files that have
-        complex macros in them, as CppHeaderParser can't deal with them
-    '''
+class PreprocessorError(Exception):
+    pass
 
-    # Execute pcpp externally because it's easier than dealing with
-    # their API
-    args = [
-        sys.executable,
-        "-c",
-        "import pcpp; pcpp.main()",
-        "--passthru-unfound-includes",
-        "--passthru-comments",
-        "--compress",
-        "--line-directive=##__H2WLINE",
-        fname,
-        "-o",
-        "-",
-    ]
+class H2WPreprocessor(Preprocessor):
 
-    for p in include_paths:
-        args.append("-I")
-        args.append(p)
-    
-    output = subprocess.check_output(args, universal_newlines=True).split("\n")
+    def __init__(self):
+        Preprocessor.__init__(self)
+        self.errors = []
 
+    def on_error(self,file,line,msg):
+        self.errors.append('%s:%d error: %s' % (file, line, msg))
+
+    def on_include_not_found(self,is_system_include,curdir,includepath):
+        raise OutputDirective(Action.IgnoreAndPassThrough)
+
+    def on_comment(self,tok):
+        return True
+
+
+def _filter_self(fp):
     # the output of pcpp includes the contents of all the included files,
     # which isn't what a typical user of h2w would want, so we strip out
     # the line directives and any content that isn't in our original file
 
     # the first line is always our file, and sometimes pcpp doesn't use the
     # original filename (BUT it's always consistent)
-    ew = output[0][len("##__H2WLINE 1 "):]
+    ew = fp.readline()[len("##__H2WLINE 1 "):]
 
-    new_output = []
-    for line in output:
+    new_output = io.StringIO()
+    keep = True
+
+    for line in fp:
         if line.startswith("##__H2WLINE"):
             keep = line.endswith(ew)
             continue
         
         if keep:
-            new_output.append(line)
+            new_output.write(line)
+            new_output.write("\n")
     
-    return "\n".join(new_output)
+    new_output.seek(0)
+    return new_output.read()
+
+
+def preprocess_file(fname, include_paths=[], retain_all_content=False):
+    '''
+        Preprocesses the file via pcpp. Useful for dealing with files that have
+        complex macros in them, as CppHeaderParser can't deal with them
+    '''
+
+    pp = H2WPreprocessor()
+    if include_paths:
+        for p in include_paths:
+            pp.add_path(p)
+    
+    if not retain_all_content:
+        pp.line_directive = "##__H2WLINE"
+    
+    with open(fname) as fp:
+        pp.parse(fp)
+    
+    if pp.errors:
+        raise PreprocessorError('\n'.join(pp.errors))
+    elif pp.return_code:
+        raise PreprocessorError('failed with exit code %d' % pp.return_code)
+    
+    fp = io.StringIO()
+    pp.write(fp)
+    fp.seek(0)
+    if retain_all_content:
+        return fp.read()
+    else:
+        return _filter_self(fp)
+
+
+if __name__ == '__main__':
+    print(preprocess_file(sys.argv[1], sys.argv[2:]))

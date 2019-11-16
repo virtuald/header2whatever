@@ -53,7 +53,7 @@ def process_header(cfg, fname, hooks, data):
     '''Returns a list of lines'''
 
     if cfg.preprocess:
-        contents = preprocess_file(fname, cfg.pp_include_paths)
+        contents = preprocess_file(fname, cfg.pp_include_paths, cfg.pp_retain_all_content)
     else:
         contents = read_file(fname)
 
@@ -78,7 +78,7 @@ def process_header(cfg, fname, hooks, data):
     header.all_global_enums = header.global_enums
     header.all_variables = header.variables
 
-    if cfg.preprocess:
+    if cfg.preprocess and cfg.pp_retain_all_content:
         header.classes = _only_this_file(header.classes, fname)
         header.functions = _only_this_file(header.functions, fname)
         header.enums = _only_this_file(header.enums, fname)

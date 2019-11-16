@@ -41,7 +41,12 @@ class Config(Model):
     ignore_symbols = ListType(StringType)
 
     #: Enable preprocessing of the file
-    preprocess = BooleanType()
+    preprocess = BooleanType(default=False)
+
+    #: If True, don't modify preprocessed output and keep #line preprocessing
+    #: tokens in the output. Otherwise, remove anything not associated with
+    #: the file being parsed.
+    pp_retain_all_content = BooleanType(default=False)
 
     #: Include directories (relative to root) to use for preprocessing
     pp_include_paths = ListType(StringType)
