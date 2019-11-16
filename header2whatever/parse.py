@@ -40,6 +40,8 @@ def _fix_header(contents):
     contents = contents.replace('enum class', 'enum')
     return contents
 
+def _only_this_file(l, fname):
+    return [i for i in l if i['filename'] == fname]
 
 def process_header(cfg, fname, hooks, data):
     '''Returns a list of lines'''
@@ -61,13 +63,24 @@ def process_header(cfg, fname, hooks, data):
 
     header.fname = basename(fname)
 
-    classes = []
+    header.classes = header.classes_order
 
-    for cls in sorted(header.classes.values(), key=lambda c: c['line_number']):
+    # move and filter
+    header.all_classes = header.classes
+    header.all_functions = header.functions
+    header.all_enums = header.enums
+    header.all_global_enums = header.global_enums
+    header.all_variables = header.variables
+
+    if cfg.preprocess:
+        header.classes = _only_this_file(header.classes, fname)
+        header.functions = _only_this_file(header.functions, fname)
+        header.enums = _only_this_file(header.enums, fname)
+        header.global_enums = _only_this_file(header.global_enums, fname)
+        header.variables = _only_this_file(header.variables, fname)
+
+    for cls in header.classes:
         _process_class(cls, hooks, data)
-        classes.append(cls)
-
-    header.classes = classes
 
     for fn in header.functions:
         call_hook(fn["name"], hooks, 'function_hook', fn, data)
