@@ -35,11 +35,6 @@ def _process_class(cls, hooks, data):
 
     call_hook(cls["name"], hooks, 'class_hook', cls, data)
 
-def _fix_header(contents):
-    # CppHeaderParser doesn't handle 'enum class' yet
-    contents = contents.replace('enum class', 'enum')
-    return contents
-
 def _only_this_file(l, fname):
     r = []
     for i in l:
@@ -57,7 +52,7 @@ def process_header(cfg, fname, hooks, data):
     else:
         contents = read_file(fname)
 
-    header = CppHeaderParser.CppHeader(_fix_header(contents),
+    header = CppHeaderParser.CppHeader(contents,
                                        argType='string')
 
     header.full_fname = fname
