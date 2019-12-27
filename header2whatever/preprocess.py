@@ -1,6 +1,6 @@
 
 import io
-from os.path import dirname
+from os.path import dirname, relpath
 import subprocess
 import sys
 
@@ -25,26 +25,28 @@ class H2WPreprocessor(Preprocessor):
         return True
 
 
-def _filter_self(fp):
+def _filter_self(fname, fp):
     # the output of pcpp includes the contents of all the included files,
     # which isn't what a typical user of h2w would want, so we strip out
     # the line directives and any content that isn't in our original file
 
-    # the first line is always our file, and sometimes pcpp doesn't use the
-    # original filename (BUT it's always consistent)
-    ew = fp.readline()[len("##__H2WLINE 1 "):]
+    # Compute the filename to match based on how pcpp does it
+    try:
+        relfname = relpath(fname)
+    except Exception:
+        relfname = fname
+
+    relfname += '"\n'
 
     new_output = io.StringIO()
     keep = True
 
     for line in fp:
-        if line.startswith("##__H2WLINE"):
-            keep = line.endswith(ew)
-            continue
+        if line.startswith("#line"):
+            keep = line.endswith(relfname)
         
         if keep:
             new_output.write(line)
-            new_output.write("\n")
     
     new_output.seek(0)
     return new_output.read()
@@ -62,7 +64,7 @@ def preprocess_file(fname, include_paths=[], retain_all_content=False):
             pp.add_path(p)
     
     if not retain_all_content:
-        pp.line_directive = "##__H2WLINE"
+        pp.line_directive = "#line"
     
     with open(fname) as fp:
         pp.parse(fp)
@@ -78,7 +80,7 @@ def preprocess_file(fname, include_paths=[], retain_all_content=False):
     if retain_all_content:
         return fp.read()
     else:
-        return _filter_self(fp)
+        return _filter_self(fname, fp)
 
 
 if __name__ == '__main__':
