@@ -13,6 +13,9 @@ from .config import Config, Template
 from .preprocess import preprocess_file
 from .util import import_file, read_file
 
+class CppHeaderParserError(Exception):
+    pass
+
 class HookError(Exception):
     pass
 
@@ -52,8 +55,11 @@ def process_header(cfg, fname, hooks, data):
     else:
         contents = read_file(fname)
 
-    header = CppHeaderParser.CppHeader(contents,
-                                       argType='string')
+    try:
+        header = CppHeaderParser.CppHeader(contents,
+                                        argType='string')
+    except Exception as e:
+        raise CppHeaderParserError("processing " + fname) from e
 
     header.full_fname = fname
     root = getattr(cfg, 'root', None)
