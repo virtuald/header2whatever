@@ -108,94 +108,111 @@ def process_module(cfg, hooks, data):
 
     return data
 
-def process_config(cfg, data=None):
-    # If data is passed in, this is used for data instead of loading it
-    # from file
-    old_ignored = CppHeaderParser.ignoreSymbols
-    CppHeaderParser.ignoreSymbols = old_ignored[:]
-    if cfg.ignore_symbols:
-        CppHeaderParser.ignoreSymbols.extend(cfg.ignore_symbols)
+class ConfigProcessor:
 
-    try:
-        return _process_config(cfg, data)
-    finally:
-        CppHeaderParser.ignoreSymbols = old_ignored
+    def __init__(self, searchpath, hooks):
+        self._env = jinja2.Environment(
+            loader=jinja2.FileSystemLoader(searchpath=searchpath),
+            undefined=jinja2.StrictUndefined,
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+        self.hooks = hooks
 
-def _render_template(tmpl, data, gbls):
-    # Load the template
-    env = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(searchpath=dirname(tmpl.src)),
-        undefined=jinja2.StrictUndefined,
-        trim_blocks=True,
-        lstrip_blocks=True,
-    )
+    def process_config(self, cfg, data=None):
+        # If data is passed in, this is used for data instead of loading it
+        # from file
+        old_ignored = CppHeaderParser.ignoreSymbols
+        CppHeaderParser.ignoreSymbols = old_ignored[:]
+        if cfg.ignore_symbols:
+            CppHeaderParser.ignoreSymbols.extend(cfg.ignore_symbols)
 
-    jtmpl = env.get_template(basename(tmpl.src), globals=gbls)
+        try:
+            return self._process_config(cfg, data)
+        finally:
+            CppHeaderParser.ignoreSymbols = old_ignored
 
-    try:
-        s = jtmpl.render(**data)
-    except SkipGeneration:
-        return
+    def _process_config(self, cfg, data):
+        # Setup the default hooks first
+        hook_modules = [default_hooks]
+        if cfg.hooks:
+            hook_modules.append(import_file(cfg.hooks))
+        if self.hooks:
+            hook_modules.append(self.hooks)
 
-    dst = tmpl.dst
-    if dst:
-        if '{' in dst:
-            env = jinja2.Environment(
-                loader=jinja2.FunctionLoader(lambda _: dst),
-                undefined=jinja2.StrictUndefined,
-            )
-            dst = env.get_template('_', globals=gbls).render(**data)
+        hooks = {}
+        for mod in hook_modules:
+            for n in ['function_hook', 'method_hook', 'class_hook', 'header_hook']:
+                fn = getattr(mod, n, None)
+                if fn:
+                    hooks.setdefault(n, []).append(fn)
+
+        gbls = {}
+        gbls['config'] = cfg
+        gbls.update(cfg.vars)
+
+        if data is not None:
+            gbls['data'] = data
+        elif cfg.data:
+            with open(cfg.data) as fp:
+                gbls['data'] = yaml.safe_load(fp)
+
+            if gbls['data'] is None:
+                gbls['data'] = {}
         
-        with open(dst, 'w') as fp:
-            fp.write(s)
-    else:
-        print(s)
+        # Provide an escape mechanism
+        def _skip_generation():
+            raise SkipGeneration()
 
-def _process_config(cfg, data):
-    # Setup the default hooks first
-    hook_modules = [default_hooks]
-    if cfg.hooks:
-        hook_modules.append(import_file(cfg.hooks))
+        gbls['skip_generation'] = _skip_generation
 
-    hooks = {}
-    for mod in hook_modules:
-        for n in ['function_hook', 'method_hook', 'class_hook', 'header_hook']:
-            fn = getattr(mod, n, None)
-            if fn:
-                hooks.setdefault(n, []).append(fn)
+        # Process the module
+        data = process_module(cfg, hooks, gbls)
 
-    gbls = {}
-    gbls['config'] = cfg
-    gbls.update(cfg.vars)
+        gbls.update(data)
 
-    if data is not None:
-        gbls['data'] = data
-    elif cfg.data:
-        with open(cfg.data) as fp:
-            gbls['data'] = yaml.safe_load(fp)
+        for tmpl in cfg.templates:
+            self._render_template(tmpl, gbls)
+            
+        if cfg.class_templates:
+            for header in data["headers"]:
+                for clsdata in header.classes:
+                    gbls["cls"] = clsdata
+                    for tmpl in cfg.class_templates:
+                        self._render_template(tmpl, gbls)
 
-        if gbls['data'] is None:
-            gbls['data'] = {}
-    
-    # Provide an escape mechanism
-    def _skip_generation():
-        raise SkipGeneration()
+    def _render_template(self, tmpl, data):
+        
+        jtmpl = self._env.get_template(basename(tmpl.src))
 
-    gbls['skip_generation'] = _skip_generation
+        try:
+            s = jtmpl.render(**data)
+        except SkipGeneration:
+            return
 
-    # Process the module
-    data = process_module(cfg, hooks, gbls)
+        dst = tmpl.dst
+        if dst:
+            if '{' in dst:
+                env = jinja2.Environment(
+                    loader=jinja2.FunctionLoader(lambda _: dst),
+                    undefined=jinja2.StrictUndefined,
+                )
+                dst = env.get_template('_').render(**data)
+            
+            with open(dst, 'w') as fp:
+                fp.write(s)
+        else:
+            print(s)
 
+def process_config(cfg, data=None, hooks=None):
+    searchpath = set()
     for tmpl in cfg.templates:
-        _render_template(tmpl, data, gbls)
-        
-    if cfg.class_templates:
-        for header in data["headers"]:
-            for clsdata in header.classes:
-                data["cls"] = clsdata
-                for tmpl in cfg.class_templates:
-                    _render_template(tmpl, data, gbls)
-
+        searchpath.add(dirname(tmpl.src))
+    for tmpl in cfg.class_templates:
+        searchpath.add(dirname(tmpl.src))
+    
+    cp = ConfigProcessor(searchpath, hooks)
+    cp.process_config(cfg, data)
 
 
 def main():
