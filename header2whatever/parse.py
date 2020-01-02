@@ -110,16 +110,16 @@ def process_module(cfg, hooks, data):
 
 class ConfigProcessor:
 
-    def __init__(self, searchpath, hooks):
+    def __init__(self, searchpath, hookobj=None):
         self._env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(searchpath=searchpath),
             undefined=jinja2.StrictUndefined,
             trim_blocks=True,
             lstrip_blocks=True,
         )
-        self.hooks = hooks
+        self.hookobj = hookobj
 
-    def process_config(self, cfg, data=None):
+    def process_config(self, cfg, data=None, hookobj=None):
         # If data is passed in, this is used for data instead of loading it
         # from file
         old_ignored = CppHeaderParser.ignoreSymbols
@@ -128,17 +128,19 @@ class ConfigProcessor:
             CppHeaderParser.ignoreSymbols.extend(cfg.ignore_symbols)
 
         try:
-            return self._process_config(cfg, data)
+            return self._process_config(cfg, data, hookobj)
         finally:
             CppHeaderParser.ignoreSymbols = old_ignored
 
-    def _process_config(self, cfg, data):
+    def _process_config(self, cfg, data, hookobj):
         # Setup the default hooks first
         hook_modules = [default_hooks]
         if cfg.hooks:
             hook_modules.append(import_file(cfg.hooks))
-        if self.hooks:
-            hook_modules.append(self.hooks)
+        if self.hookobj:
+            hook_modules.append(self.hookobj)
+        if hookobj:
+            hook_modules.append(hookobj)
 
         hooks = {}
         for mod in hook_modules:
