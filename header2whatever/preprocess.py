@@ -52,7 +52,7 @@ def _filter_self(fname, fp):
     return new_output.read()
 
 
-def preprocess_file(fname, include_paths=[], retain_all_content=False):
+def preprocess_file(fname, include_paths=[], retain_all_content=False, defines=[]):
     '''
         Preprocesses the file via pcpp. Useful for dealing with files that have
         complex macros in them, as CppHeaderParser can't deal with them
@@ -62,6 +62,9 @@ def preprocess_file(fname, include_paths=[], retain_all_content=False):
     if include_paths:
         for p in include_paths:
             pp.add_path(p)
+    
+    for define in defines:
+        pp.define(define)
     
     if not retain_all_content:
         pp.line_directive = "#line"

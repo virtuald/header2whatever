@@ -49,6 +49,10 @@ class Config(Model):
     pp_retain_all_content = BooleanType(default=False)
 
     #: Include directories (relative to root) to use for preprocessing
-    pp_include_paths = ListType(StringType)
+    pp_include_paths = ListType(StringType, default=[])
+
+    #: Preprocessor defines. For example, if you're parsing C++ code,
+    #: it might make sense to add '__cplusplus 201103L' here
+    pp_defines = ListType(StringType, default=[])
 
 

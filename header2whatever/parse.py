@@ -51,7 +51,10 @@ def process_header(cfg, fname, hooks, data):
     '''Returns a list of lines'''
 
     if cfg.preprocess:
-        contents = preprocess_file(fname, cfg.pp_include_paths, cfg.pp_retain_all_content)
+        contents = preprocess_file(fname,
+                                   cfg.pp_include_paths,
+                                   cfg.pp_retain_all_content,
+                                   cfg.pp_defines)
     else:
         contents = read_file(fname)
 
