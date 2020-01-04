@@ -239,6 +239,7 @@ def main():
     parser.add_argument('--preprocess', action='store_true', default=False, help="Preprocess file with pcpp")
     parser.add_argument('--pp-retain-all-content', action='store_true', default=False)
     parser.add_argument('--include', '-I', action='append', default=[], help="Preprocessor include paths")
+    parser.add_argument('--define', '-D', action='append', default=[], help="Preprocessor #define macros")
 
     parser.add_argument('--hooks', help='Specify custom hooks file to load')
     
@@ -258,6 +259,7 @@ def main():
     cfg.data = args.data
     cfg.preprocess = args.preprocess
     cfg.pp_include_paths = args.include
+    cfg.pp_defines = args.define
     cfg.pp_retain_all_content = args.pp_retain_all_content
 
     # Special hook
