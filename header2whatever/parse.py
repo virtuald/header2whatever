@@ -16,6 +16,10 @@ from .util import import_file, read_file
 class CppHeaderParserError(Exception):
     pass
 
+class PreprocessorError(Exception):
+    pass
+
+
 class HookError(Exception):
     pass
 
@@ -51,10 +55,13 @@ def process_header(cfg, fname, hooks, data):
     '''Returns a list of lines'''
 
     if cfg.preprocess:
-        contents = preprocess_file(fname,
-                                   cfg.pp_include_paths,
-                                   cfg.pp_retain_all_content,
-                                   cfg.pp_defines)
+        try:
+            contents = preprocess_file(fname,
+                                    cfg.pp_include_paths,
+                                    cfg.pp_retain_all_content,
+                                    cfg.pp_defines)
+        except Exception as e:
+            raise PreprocessorError("processing " + fname) from e
     else:
         contents = read_file(fname)
 
