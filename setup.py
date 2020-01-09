@@ -48,7 +48,7 @@ setup(
     keywords='c++ cpp codegen generator header jinja2 template',
     packages=[base_package],
     install_requires=[
-        'robotpy-cppheaderparser>=3.2.0',
+        'robotpy-cppheaderparser>=4.0.0',
         'jinja2',
         'pyyaml',
         'schematics',
