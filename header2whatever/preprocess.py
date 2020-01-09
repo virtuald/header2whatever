@@ -35,6 +35,7 @@ def _filter_self(fname, fp):
         relfname = relpath(fname)
     except Exception:
         relfname = fname
+    relfname = relfname.replace('\\', '/')
 
     relfname += '"\n'
 
