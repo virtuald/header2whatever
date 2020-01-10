@@ -4,7 +4,7 @@ from os.path import dirname, relpath
 import subprocess
 import sys
 
-from pcpp import Preprocessor, OutputDirective, Action
+from ._pcpp import Preprocessor, OutputDirective, Action
 
 class PreprocessorError(Exception):
     pass

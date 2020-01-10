@@ -46,13 +46,16 @@ setup(
     author_email='dustin@virtualroadside.com',
     url='https://github.com/virtualroadside/header2whatever',
     keywords='c++ cpp codegen generator header jinja2 template',
-    packages=[base_package],
+    packages=[
+        base_package,
+        base_package + "/_pcpp",
+        base_package + "/_pcpp/ply/ply",
+    ],
     install_requires=[
         'robotpy-cppheaderparser>=4.0.0',
         'jinja2',
         'pyyaml',
         'schematics',
-        'pcpp',
     ],
     license='Apache 2.0',
     classifiers=[
