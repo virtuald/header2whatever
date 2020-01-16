@@ -34,7 +34,7 @@ def import_file(filename):
 def read_file(fname):
     # CppHeaderParser doesn't deal well with weirdly formatted files
     with open(fname, 'rb') as fp:
-        contents = fp.read().decode('utf-8', 'replace').replace('\ufeff', '')
+        contents = fp.read().decode('utf-8-sig', 'replace')
 
     return contents
 

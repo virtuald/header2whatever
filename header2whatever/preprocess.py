@@ -5,6 +5,7 @@ import subprocess
 import sys
 
 from ._pcpp import Preprocessor, OutputDirective, Action
+from .util import read_file
 
 class PreprocessorError(Exception):
     pass
@@ -70,8 +71,8 @@ def preprocess_file(fname, include_paths=[], retain_all_content=False, defines=[
     if not retain_all_content:
         pp.line_directive = "#line"
     
-    with open(fname) as fp:
-        pp.parse(fp)
+    pp_content = read_file(fname)
+    pp.parse(pp_content, fname)
     
     if pp.errors:
         raise PreprocessorError('\n'.join(pp.errors))
