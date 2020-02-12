@@ -166,7 +166,7 @@ class ConfigProcessor:
         if data is not None:
             gbls['data'] = data
         elif cfg.data:
-            with open(cfg.data) as fp:
+            with open(cfg.data, encoding='utf-8-sig') as fp:
                 gbls['data'] = yaml.safe_load(fp)
 
             if gbls['data'] is None:
@@ -211,7 +211,7 @@ class ConfigProcessor:
                 )
                 dst = env.get_template('_').render(**data)
             
-            with open(dst, 'w') as fp:
+            with open(dst, 'w', encoding='utf-8') as fp:
                 fp.write(s)
         else:
             print(s)
