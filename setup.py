@@ -55,7 +55,7 @@ setup(
         'robotpy-cppheaderparser>=5.0.0',
         'jinja2',
         'pyyaml',
-        'schematics',
+        'schematics>=2.1.1',
     ],
     license='Apache 2.0',
     classifiers=[
