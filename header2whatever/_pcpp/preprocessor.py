@@ -1505,7 +1505,10 @@ class Preprocessor(PreprocessorHooks):
                         print("x:x:x x:x #include \"%s\" skipped as already seen" % (fulliname), file = self.debugout)
                     return
                 try:
-                    ih = open(fulliname,"r")
+                    try:
+                        ih = open(fulliname,"r")    # platform encoding first
+                    except UnicodeDecodeError:
+                        ih = open(fulliname,"r", encoding="utf-8-sig") # utf-8 second
                     data = ih.read()
                     ih.close()
                     dname = os.path.dirname(fulliname)
