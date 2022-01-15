@@ -1511,7 +1511,7 @@ class Preprocessor(PreprocessorHooks):
                     except UnicodeDecodeError:
                         with open(fulliname,"r", encoding="utf-8-sig") as ih: # utf-8 second
                             data = ih.read()
-                    ih.close()
+                    
                     dname = os.path.dirname(fulliname)
                     if dname:
                         self.temp_path.insert(0,dname)
