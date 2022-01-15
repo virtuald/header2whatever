@@ -1506,10 +1506,11 @@ class Preprocessor(PreprocessorHooks):
                     return
                 try:
                     try:
-                        ih = open(fulliname,"r")    # platform encoding first
+                        with open(fulliname,"r") as ih:    # platform encoding first
+                            data = ih.read()
                     except UnicodeDecodeError:
-                        ih = open(fulliname,"r", encoding="utf-8-sig") # utf-8 second
-                    data = ih.read()
+                        with open(fulliname,"r", encoding="utf-8-sig") as ih: # utf-8 second
+                            data = ih.read()
                     ih.close()
                     dname = os.path.dirname(fulliname)
                     if dname:
