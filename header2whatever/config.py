@@ -12,6 +12,9 @@ class Template(Model):
     # processed as a Jinja2 template
     dst = StringType(default=None)
 
+    #: Variables to pass to the template as 'per_tmpl_vars'
+    vars = DictType(StringType, default={})
+
 
 class Config(Model):
     '''

@@ -197,6 +197,8 @@ class ConfigProcessor:
         
         jtmpl = self._env.get_template(basename(tmpl.src))
 
+        data["per_tmpl_vars"] = tmpl.vars
+
         try:
             s = jtmpl.render(**data)
         except SkipGeneration:
