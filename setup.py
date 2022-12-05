@@ -52,7 +52,7 @@ setup(
         base_package + "/_pcpp/ply/ply",
     ],
     install_requires=[
-        'robotpy-cppheaderparser>=5.0.0',
+        'robotpy-cppheaderparser>=5.1.0',
         'jinja2',
         'pyyaml',
         'schematics>=2.1.1',

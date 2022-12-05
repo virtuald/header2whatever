@@ -67,7 +67,7 @@ def process_header(cfg, fname, hooks, data):
 
     try:
         header = CppHeaderParser.CppHeader(contents,
-                                        argType='string')
+                                        argType='string', preprocessed=True)
     except Exception as e:
         raise CppHeaderParserError("processing " + fname) from e
 
